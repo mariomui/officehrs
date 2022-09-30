@@ -1,0 +1,67 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Mentor {
+  id         Int                   @id @default(autoincrement())
+  email      String                @unique
+  name       String?
+  expertises ExpertisesOnMentors[]
+  // first one is the primary expertise
+  // although i think i want to make a bridge table
+}
+
+model Expertise {
+  id      Int                   @id @default(autoincrement())
+  name    String?
+  mentors ExpertisesOnMentors[]
+  // first one is the primary expertise
+  // although i think i want to make a bridge table
+}
+
+model ExpertisesOnMentors {
+  // 2 lines establis the FK Mentor is now linked to ExpertiseMentor
+  mentor   Mentor @relation(fields: [mentorId], references: [id])
+  mentorId Int
+
+  expertise   Expertise @relation(fields: [expertiseId], references: [id])
+  expertiseId Int
+
+  // this serves as the composite id for the bridge table  
+  @@id([mentorId, expertiseId])
+}
+
+// CREATE TABLE "Mentor" (
+//     id SERIAL PRIMARY KEY,
+//     name TEXT NOT NULL (optional, forgot how to do that)
+//     email TEXT NOT NULL
+// );
+// CREATE TABLE "Expertise" (
+//     id SERIAL PRIMARY KEY,
+//     name TEXT NOT NULL
+// );
+// -- Relation table + indexes -------------------------------------------------------
+// CREATE TABLE "ExpertisesOnMentors" (
+//     "expertiseId" integer NOT NULL,
+//     "mentorId" integer NOT NULL,
+//     FOREIGN KEY ("expertiseId")  REFERENCES "Expertise"(id),
+//     FOREIGN KEY ("mentorId") REFERENCES "Mentor"(id)
+// );
+// CREATE UNIQUE INDEX "ExpertisesOnMentors_expertise_mentor_unique" ON "ExpertisesOnMentors"("expertiseId" int4_ops,"mentorId" int4_ops);
+
+model Mentee {
+  id        Int    @id @default(autoincrement())
+  firstName String
+  lastName  String
+  email     String @unique
+  hash      String
+  // we'll need a one way hash like bcrypt and a secret token and
+  //  save a pw like password as p8ssw0rd (one way, cannot be reversed);
+}
+
+// Session JWT table. To be done later
