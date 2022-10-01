@@ -2,6 +2,9 @@ generator client {
   provider = "prisma-client-js"
 }
 
+// ER DIAGRAM Visualizer
+// please copy everything and paste to this site
+// https://prisma-erd.simonknott.de/
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
