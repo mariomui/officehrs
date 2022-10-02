@@ -1,0 +1,102 @@
+{
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/models/src",
+  "projectType": "library",
+  "targets": {
+    "lint": {
+      "executor": "@nrwl/linter:eslint",
+      "outputs": [
+        "{options.outputFile}"
+      ],
+      "options": {
+        "lintFilePatterns": [
+          "libs/models/**/*.ts"
+        ]
+      }
+    },
+    "test": {
+      "executor": "@nrwl/jest:jest",
+      "outputs": [
+        "coverage/libs/models"
+      ],
+      "options": {
+        "jestConfig": "libs/models/jest.config.ts",
+        "passWithNoTests": true
+      }
+    },
+    "db-push": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "npx prisma db push --schema ./src/prisma/schema.prisma --accept-data-loss"
+        ],
+        "cwd": "libs/models"
+      }
+    },
+    "db-seed": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "npx prisma db seed"
+        ],
+        "cwd": "libs/models"
+      }
+    },
+    "migrate-dev": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "npx prisma migrate dev --schema ./src/prisma/schema.prisma"
+        ],
+        "cwd": "libs/models",
+        "parallel": false
+      }
+    },
+    "migrate-reset": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "npx prisma migrate reset --force --schema ./src/prisma/schema.prisma"
+        ],
+        "cwd": "libs/models",
+        "parallel": false
+      }
+    },
+    "prisma-generate": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "npm run prisma:generate"
+        ],
+        "cwd": "libs/models"
+      }
+    },
+    "prisma-studio": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "npx prisma studio --schema ./src/prisma/schema.prisma"
+        ],
+        "cwd": "libs/models"
+      }
+    },
+    "migrate-sync": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "npx prisma db pull --schema ./src/prisma/schema.prisma",
+          "npx prisma migrate dev --name introspected_change --schema ./src/prisma/schema.prisma --skip-generate"
+        ],
+        "cwd": "libs/models"
+      }
+    },
+    "diag-sql": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "npx prisma migrate diff --from-empty --to-schema-datamodel ./src/prisma/schema.prisma --script > sql-logs/script.sql",
+        "cwd": "libs/models"
+      }
+    }
+  },
+  "tags": []
+}

@@ -1,0 +1,52 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                Int                 @id @default(autoincrement())
+  user_email        String              @unique
+  user_hashedpw     String
+  user_name         String
+  user_salt         String
+  user_surname      String
+  Role              Roles
+  addressId         Int?                @unique
+  Address           Address?            @relation(fields: [addressId], references: [id])
+  ExpertisesOnUsers ExpertisesOnUsers[]
+}
+
+model Address {
+  id              Int     @id @default(autoincrement())
+  address_street  String?
+  address_city    String?
+  address_zip     String?
+  address_county  String?
+  address_country String
+  address_raw     String?
+  User            User?
+}
+
+model Expertise {
+  id      Int                 @id @default(autoincrement())
+  name    String              @unique
+  mentors ExpertisesOnUsers[]
+}
+
+model ExpertisesOnUsers {
+  userId      Int
+  expertiseId Int
+  expertise   Expertise @relation(fields: [expertiseId], references: [id])
+  User        User      @relation(fields: [userId], references: [id])
+
+  @@id([expertiseId, userId])
+}
+
+enum Roles {
+  Mentor
+  Mentee
+}

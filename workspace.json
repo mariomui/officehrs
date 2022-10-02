@@ -4,6 +4,7 @@
   "projects": {
     "api": "apps/api",
     "api-interfaces": "libs/api-interfaces",
+    "models": "libs/models",
     "office-hours-app": "apps/office-hours-app",
     "office-hours-app-e2e": "apps/office-hours-app-e2e"
   }
