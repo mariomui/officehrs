@@ -32,9 +32,9 @@ async function genAddressData(
   });
 }
 async function genUserData(
-  opts = { length: 1, role: Roles.Mentor }
+  opts = { length: 1, role: Roles.Mentor, numOfAddresses: 1 }
 ): Promise<Prisma.UserCreateInput[]> {
-  const { length, role } = opts;
+  const { length, role, numOfAddresses } = opts;
   const lastNames = randLastName({ length });
   const firstNames = randFirstName({ length });
   const emails = randEmail({ length });
@@ -47,11 +47,13 @@ async function genUserData(
     length,
   });
 
-  const addressCount = await prisma.address.count();
-
   const emailMap = {};
+  function getAddressId(addressId) {
+    return addressId <= 0 ? {} : { addressId };
+  }
   return new Promise((re, rj) => {
     try {
+      let _addressCount = numOfAddresses;
       const result = Array(length)
         .fill(null)
         .map((_x, idx) => {
@@ -64,7 +66,7 @@ async function genUserData(
               user_salt: salts[idx],
               user_surname: firstNames[idx],
               Role: role,
-              addressId: randNumber({ min: 1, max: addressCount }),
+              ...getAddressId(_addressCount--),
             };
           }
           return null;
@@ -92,12 +94,16 @@ async function main() {
     return (randNumber({ min: 10, max: 1000 }) % expertises.length) + 1;
   };
 
-  await prisma.address.createMany({
+  const $addresses = await prisma.address.createMany({
     data: addresses,
     skipDuplicates: true,
   });
 
-  const mentors = await genUserData({ length: 50, role: Roles.Mentor });
+  const mentors = await genUserData({
+    length: 50,
+    role: Roles.Mentor,
+    numOfAddresses: $addresses.count,
+  });
   const numOfMentors = mentors.length;
 
   // data boundary interfacers

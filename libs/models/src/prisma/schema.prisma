@@ -12,13 +12,13 @@ datasource db {
 
 model Address {
   id              Int     @id @default(autoincrement())
-  address_street  String
-  address_city    String
-  address_zip     String
-  address_county  String
+  address_street  String?
+  address_city    String?
+  address_zip     String?
+  address_county  String?
   address_country String
   address_raw     String?
-  User            User[]
+  User            User?
 }
 
 model User {
@@ -31,7 +31,7 @@ model User {
   ExpertisesOnUsers ExpertisesOnUsers[]
   Role              Roles
   Address           Address?            @relation(fields: [addressId], references: [id])
-  addressId         Int?
+  addressId         Int?                @unique
 }
 
 enum Roles {
