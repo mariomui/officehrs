@@ -12,6 +12,7 @@
   "private": true,
   "dependencies": {
     "@prisma/client": "^4.4.0",
+    "bcrypt": "^5.0.1",
     "core-js": "^3.6.5",
     "express": "^4.18.1",
     "react": "18.2.0",

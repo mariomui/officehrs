@@ -10,33 +10,46 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Mentor {
-  id         Int                   @id @default(autoincrement())
-  email      String                @unique
-  firstName  String
-  lastName   String?
-  expertises ExpertisesOnMentors[]
+model Address {
+  id              Int     @id @default(autoincrement())
+  address_street  String
+  address_city    String
+  address_zip     String
+  address_county  String
+  address_country String
+  address_raw     String?
+  User            User[]
+}
+
+model User {
+  id                Int                 @id @default(autoincrement())
+  user_email        String              @unique
+  user_hashedpw     String
+  user_name         String
+  user_salt         String
+  user_surname      String
+  ExpertisesOnUsers ExpertisesOnUsers[]
+  Role              Roles
+  Address           Address?            @relation(fields: [addressId], references: [id])
+  addressId         Int?
+}
+
+enum Roles {
+  Mentor
+  Mentee
 }
 
 model Expertise {
-  id      Int                   @id @default(autoincrement())
-  name    String                @unique
-  mentors ExpertisesOnMentors[]
+  id      Int                 @id @default(autoincrement())
+  name    String              @unique
+  mentors ExpertisesOnUsers[]
 }
 
-model ExpertisesOnMentors {
-  mentorId    Int
+model ExpertisesOnUsers {
+  userId      Int
   expertiseId Int
   expertise   Expertise @relation(fields: [expertiseId], references: [id])
-  mentor      Mentor    @relation(fields: [mentorId], references: [id])
+  User        User      @relation(fields: [userId], references: [id])
 
-  @@id([expertiseId, mentorId])
-}
-
-model Mentee {
-  id        Int    @id @default(autoincrement())
-  firstName String
-  lastName  String
-  email     String @unique
-  hash      String
+  @@id([expertiseId, userId])
 }

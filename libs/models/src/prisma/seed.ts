@@ -1,19 +1,54 @@
-import { PrismaClient, Prisma } from '@prisma/client';
+import { PrismaClient, Prisma, Roles } from '@prisma/client';
 import {
+  randAddress,
   randEmail,
   randFirstName,
   randLastName,
   randNumber,
+  randPassword,
 } from '@ngneat/falso';
 const prisma = new PrismaClient({ log: ['query', 'info'] });
 
-async function genCreateMentorData(
+async function genAddressData(
   opts = { length: 1 }
-): Promise<Prisma.MentorCreateInput[]> {
+): Promise<Prisma.AddressCreateInput[]> {
   const { length } = opts;
+  return new Promise((re, rej) => {
+    const addreses = randAddress({ length });
+    try {
+      const mappedAddreses = addreses.map((address) => {
+        return {
+          address_street: address.street,
+          address_city: address.city,
+          address_zip: address.zipCode,
+          address_county: address.county,
+          address_country: address.country,
+        };
+      });
+      return re(mappedAddreses);
+    } catch (err) {
+      rej({ err });
+    }
+  });
+}
+async function genUserData(
+  opts = { length: 1, role: Roles.Mentor }
+): Promise<Prisma.UserCreateInput[]> {
+  const { length, role } = opts;
   const lastNames = randLastName({ length });
   const firstNames = randFirstName({ length });
   const emails = randEmail({ length });
+  const salts = randPassword({
+    size: randNumber({ min: 5, max: 8 }),
+    length,
+  });
+  const passwords = randPassword({
+    size: randNumber({ min: 10, max: 15 }),
+    length,
+  });
+
+  const addressCount = await prisma.address.count();
+
   const emailMap = {};
   return new Promise((re, rj) => {
     try {
@@ -23,9 +58,13 @@ async function genCreateMentorData(
           if (!emailMap[emails[idx]]) {
             emailMap[emails[idx]] = true;
             return {
-              lastName: lastNames[idx],
-              firstName: firstNames[idx],
-              email: emails[idx],
+              user_email: emails[idx],
+              user_hashedpw: passwords[idx],
+              user_name: lastNames[idx],
+              user_salt: salts[idx],
+              user_surname: firstNames[idx],
+              Role: role,
+              addressId: randNumber({ min: 1, max: addressCount }),
             };
           }
           return null;
@@ -42,34 +81,10 @@ async function genCreateMentorData(
   });
 }
 
-/**
- * used to dynamically upsert a junction table record
- */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const makeExpertisesOnMentorsDatum = (
-  mentorInput: Prisma.MentorCreateInput,
-  expertiseInput: Prisma.ExpertiseCreateInput
-): Prisma.ExpertisesOnMentorsCreateInput => {
-  return {
-    mentor: {
-      connectOrCreate: {
-        where: mentorInput,
-        create: mentorInput,
-      },
-    },
-    expertise: {
-      connectOrCreate: {
-        where: expertiseInput,
-        create: expertiseInput,
-      },
-    },
-  };
-};
-
 async function main() {
   // model data
-  const mentors = await genCreateMentorData({ length: 100 });
-  const numOfMentors = mentors.length;
+
+  const addresses = await genAddressData({ length: 50 });
   const expertises = [{ name: 'frontend' }, { name: 'backend' }];
 
   // helper functions
@@ -77,8 +92,16 @@ async function main() {
     return (randNumber({ min: 10, max: 1000 }) % expertises.length) + 1;
   };
 
+  await prisma.address.createMany({
+    data: addresses,
+    skipDuplicates: true,
+  });
+
+  const mentors = await genUserData({ length: 50, role: Roles.Mentor });
+  const numOfMentors = mentors.length;
+
   // data boundary interfacers
-  await prisma.mentor.createMany({
+  await prisma.user.createMany({
     data: mentors,
     skipDuplicates: true,
   });
@@ -96,18 +119,20 @@ async function main() {
   21
   
   */
-  await prisma.expertisesOnMentors.createMany({
+  await prisma.expertisesOnUsers.createMany({
     data: Array(numOfMentors)
       .fill(null)
       .map(() => {
         return {
-          mentorId: randNumber({ min: 1, max: numOfMentors - 1 }),
+          userId: randNumber({ min: 1, max: numOfMentors - 1 }),
           expertiseId: makeExpertiseIdx(),
         };
       }),
     skipDuplicates: true,
   });
 }
+
+// create mentee filling
 
 main()
   .then(async () => {
