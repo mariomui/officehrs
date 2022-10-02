@@ -2,12 +2,22 @@ generator client {
   provider = "prisma-client-js"
 }
 
-// ER DIAGRAM Visualizer
-// please copy everything and paste to this site
-// https://prisma-erd.simonknott.de/
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+model User {
+  id                Int                 @id @default(autoincrement())
+  user_email        String              @unique
+  user_hashedpw     String
+  user_name         String
+  user_salt         String
+  user_surname      String
+  Role              Roles
+  addressId         Int?                @unique
+  Address           Address?            @relation(fields: [addressId], references: [id])
+  ExpertisesOnUsers ExpertisesOnUsers[]
 }
 
 model Address {
@@ -19,24 +29,6 @@ model Address {
   address_country String
   address_raw     String?
   User            User?
-}
-
-model User {
-  id                Int                 @id @default(autoincrement())
-  user_email        String              @unique
-  user_hashedpw     String
-  user_name         String
-  user_salt         String
-  user_surname      String
-  ExpertisesOnUsers ExpertisesOnUsers[]
-  Role              Roles
-  Address           Address?            @relation(fields: [addressId], references: [id])
-  addressId         Int?                @unique
-}
-
-enum Roles {
-  Mentor
-  Mentee
 }
 
 model Expertise {
@@ -52,4 +44,9 @@ model ExpertisesOnUsers {
   User        User      @relation(fields: [userId], references: [id])
 
   @@id([expertiseId, userId])
+}
+
+enum Roles {
+  Mentor
+  Mentee
 }

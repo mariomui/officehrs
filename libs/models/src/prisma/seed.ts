@@ -49,7 +49,7 @@ async function genUserData(
 
   const emailMap = {};
   function getAddressId(addressId) {
-    return addressId <= 0 ? {} : { addressId };
+    return addressId <= 0 || Number.isNaN(addressId) ? {} : { addressId };
   }
   return new Promise((re, rj) => {
     try {
@@ -75,6 +75,7 @@ async function genUserData(
           return op;
         });
       if (result) {
+        console.log({ result });
         re(result);
       }
     } catch (err) {
@@ -91,23 +92,22 @@ async function main() {
 
   // helper functions
   const makeExpertiseIdx = () => {
-    return (randNumber({ min: 10, max: 1000 }) % expertises.length) + 1;
+    return (randNumber({ min: 10, max: 100 }) % expertises.length) + 1;
   };
-
-  const $addresses = await prisma.address.createMany({
+  console.log({ addresses });
+  await prisma.address.createMany({
     data: addresses,
-    skipDuplicates: true,
   });
+  const numOfAddresses = await prisma.address.count();
 
   const mentors = await genUserData({
     length: 50,
     role: Roles.Mentor,
-    numOfAddresses: $addresses.count,
+    numOfAddresses,
   });
-  const numOfMentors = mentors.length;
 
   // data boundary interfacers
-  await prisma.user.createMany({
+  const $mentors = await prisma.user.createMany({
     data: mentors,
     skipDuplicates: true,
   });
@@ -126,11 +126,11 @@ async function main() {
   
   */
   await prisma.expertisesOnUsers.createMany({
-    data: Array(numOfMentors)
+    data: Array($mentors.count)
       .fill(null)
       .map(() => {
         return {
-          userId: randNumber({ min: 1, max: numOfMentors - 1 }),
+          userId: randNumber({ min: 1, max: $mentors.count - 1 }),
           expertiseId: makeExpertiseIdx(),
         };
       }),
