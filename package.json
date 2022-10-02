@@ -22,7 +22,7 @@
   },
   "prisma": {
     "schema": "libs/models/src/prisma/schema.prisma",
-    "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} ./src/prisma/seed.ts"
+    "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} ./src/prisma/seed-scripts/seed.ts"
   },
   "devDependencies": {
     "@ngneat/falso": "^6.1.0",
