@@ -2,11 +2,11 @@ import * as express from 'express';
 import { Message } from '@office-hours/api-interfaces';
 
 const app = express();
-
+app.use(express.json());
 const greeting: Message = { message: 'Welcome to api!' };
 
 app.get('/api', (req, res) => {
-  res.send(greeting);
+  res.json(greeting);
 });
 
 const port = process.env.port || 3333;
